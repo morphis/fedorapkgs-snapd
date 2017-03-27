@@ -63,6 +63,10 @@ Patch0008:      0008-partition-skip-some-tests-if-grub-editenv-is-not-ava.patch
 # PR pending upstream (https://github.com/snapcore/snapd/pull/3084)
 Patch0009:      0009-packaging-use-templates-for-relevant-systemd-units.patch
 
+# No upstreamable yet, needs further discussion and maybe a
+# different implementation.
+Patch0010:      0010-cmd-snap-do-not-allow-classic-snaps-on-other-distrib.patch
+
 # Hopefully upstreamable
 Patch1001:      0001-packaging-Add-Fedora-packaging-files.patch
 
