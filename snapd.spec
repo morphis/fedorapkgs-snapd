@@ -310,6 +310,29 @@ providing packages with %{import_path} prefix.
 
 
 %build
+# Build snapd
+mkdir -p src/github.com/snapcore
+ln -s ../../../ src/github.com/snapcore/snapd
+
+%if ! 0%{?with_bundled}
+export GOPATH=$(pwd):%{gopath}
+%else
+export GOPATH=$(pwd):$(pwd)/Godeps/_workspace:%{gopath}
+%endif
+
+%if ! 0%{?with_bundled}
+%gobuild -o bin/snap %{import_path}/cmd/snap
+%gobuild -o bin/snap-exec %{import_path}/cmd/snap-exec
+%gobuild -o bin/snapctl %{import_path}/cmd/snapctl
+%gobuild -o bin/snapd %{import_path}/cmd/snapd
+%else
+# XXX: Vendorized build doesn't like hardening flags atm... :(
+go build -o bin/snap %{import_path}/cmd/snap
+go build -o bin/snap-exec %{import_path}/cmd/snap-exec
+go build -o bin/snapctl %{import_path}/cmd/snapctl
+go build -o bin/snapd %{import_path}/cmd/snapd
+%endif
+
 # Build SELinux module
 pushd ./data/selinux
 make SHARE="%{_datadir}" TARGETS="snappy"
@@ -333,28 +356,6 @@ autoreconf --force --install --verbose
 %make_build
 popd
 
-# Build snapd
-mkdir -p src/github.com/snapcore
-ln -s ../../../ src/github.com/snapcore/snapd
-
-%if ! 0%{?with_bundled}
-export GOPATH=$(pwd):%{gopath}
-%else
-export GOPATH=$(pwd):$(pwd)/Godeps/_workspace:%{gopath}
-%endif
-
-%if ! 0%{?with_bundled}
-%gobuild -o bin/snap %{import_path}/cmd/snap
-%gobuild -o bin/snap-exec %{import_path}/cmd/snap-exec
-%gobuild -o bin/snapctl %{import_path}/cmd/snapctl
-%gobuild -o bin/snapd %{import_path}/cmd/snapd
-%else
-# XXX: Vendorized build doesn't like hardening flags atm... :(
-go build -o bin/snap %{import_path}/cmd/snap
-go build -o bin/snap-exec %{import_path}/cmd/snap-exec
-go build -o bin/snapctl %{import_path}/cmd/snapctl
-go build -o bin/snapd %{import_path}/cmd/snapd
-%endif
 
 %install
 install -d -p %{buildroot}%{_bindir}
