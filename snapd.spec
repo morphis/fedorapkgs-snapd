@@ -60,6 +60,9 @@ Patch0006:      0006-errtracker-fix-testing-outside-of-ubuntu.patch
 Patch0007:      0007-osutil-HACK-use-usr-bin-true-false.patch
 Patch0008:      0008-partition-skip-some-tests-if-grub-editenv-is-not-ava.patch
 
+# PR pending upstream (https://github.com/snapcore/snapd/pull/3084)
+Patch0009:      0009-packaging-use-templates-for-relevant-systemd-units.patch
+
 # Hopefully upstreamable
 Patch1001:      0001-packaging-Add-Fedora-packaging-files.patch
 
@@ -356,6 +359,15 @@ autoreconf --force --install --verbose
 %make_build
 popd
 
+# Generate the real systemd units out of the available templates
+cat data/systemd/snapd.service.in | \
+  sed s:@libexecdir@:%{_libexecdir}:g | \
+  sed s:@SNAPD_ENVIRONMENT_FILE@:-/etc/sysconfig/snapd:g > data/systemd/snapd.service
+cat data/systemd/snapd.refresh.service.in | \
+  sed s:@bindir@:%{_bindir}:g | \
+  sed s:@SNAP_MOUNTDIR@:%{_sharedstatedir}/snapd/snap:g > data/systemd/snapd.refresh.service
+cat data/systemd/snapd.autoimport.service.in | \
+  sed s:@bindir@:${_bindir}:g > data/systemd/snapd.autoimport.service
 
 %install
 install -d -p %{buildroot}%{_bindir}
@@ -397,10 +409,10 @@ rm -rfv %{buildroot}%{_sysconfdir}/apparmor.d
 popd
 
 # Install all systemd units
-install -p -m 0644 packaging/fedora/systemd/snapd.socket %{buildroot}%{_unitdir}
-install -p -m 0644 packaging/fedora/systemd/snapd.service %{buildroot}%{_unitdir}
-install -p -m 0644 packaging/fedora/systemd/snapd.refresh.service %{buildroot}%{_unitdir}
-install -p -m 0644 packaging/fedora/systemd/snapd.refresh.timer %{buildroot}%{_unitdir}
+install -p -m 0644 data/systemd/snapd.socket %{buildroot}%{_unitdir}
+install -p -m 0644 data/systemd/snapd.service %{buildroot}%{_unitdir}
+install -p -m 0644 data/systemd/snapd.refresh.service %{buildroot}%{_unitdir}
+install -p -m 0644 data/systemd/snapd.refresh.timer %{buildroot}%{_unitdir}
 
 # Put /var/lib/snapd/snap/bin on PATH
 # Put /var/lib/snapd/desktop on XDG_DATA_DIRS
